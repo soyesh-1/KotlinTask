@@ -1,11 +1,14 @@
 package com.example.kotlintodopractice.fragments
 
+import android.content.DialogInterface
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.kotlintodopractice.databinding.FragmentHomeBinding
@@ -20,8 +23,7 @@ import com.google.firebase.database.ValueEventListener
 import com.google.firebase.database.ktx.database
 import com.google.firebase.ktx.Firebase
 
-class HomeFragment : Fragment(), ToDoDialogFragment.OnDialogNextBtnClickListener,
-    TaskAdapter.TaskAdapterInterface {
+class HomeFragment : Fragment(), ToDoDialogFragment.OnDialogNextBtnClickListener, TaskAdapter.TaskAdapterInterface {
 
     private val TAG = "HomeFragment"
     private lateinit var binding: FragmentHomeBinding
@@ -50,7 +52,6 @@ class HomeFragment : Fragment(), ToDoDialogFragment.OnDialogNextBtnClickListener
         //get data from firebase
         getTaskFromFirebase()
 
-
         binding.addTaskBtn.setOnClickListener {
 
             if (frag != null)
@@ -63,6 +64,10 @@ class HomeFragment : Fragment(), ToDoDialogFragment.OnDialogNextBtnClickListener
                 ToDoDialogFragment.TAG
             )
 
+        }
+
+        binding.logout.setOnClickListener {
+            showLogoutConfirmationDialog()
         }
     }
 
@@ -89,7 +94,6 @@ class HomeFragment : Fragment(), ToDoDialogFragment.OnDialogNextBtnClickListener
                 Toast.makeText(context, error.toString(), Toast.LENGTH_SHORT).show()
             }
 
-
         })
     }
 
@@ -100,7 +104,6 @@ class HomeFragment : Fragment(), ToDoDialogFragment.OnDialogNextBtnClickListener
         database = Firebase.database.reference.child("Tasks")
             .child(authId)
 
-
         binding.mainRecyclerView.setHasFixedSize(true)
         binding.mainRecyclerView.layoutManager = LinearLayoutManager(context)
 
@@ -108,6 +111,25 @@ class HomeFragment : Fragment(), ToDoDialogFragment.OnDialogNextBtnClickListener
         taskAdapter = TaskAdapter(toDoItemList)
         taskAdapter.setListener(this)
         binding.mainRecyclerView.adapter = taskAdapter
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Logout")
+            .setMessage("Are you sure you want to logout?")
+            .setPositiveButton("Yes") { dialog, which ->
+                logout()
+            }
+            .setNegativeButton("No", null)
+            .show()
+    }
+
+    private fun logout() {
+        auth.signOut()
+        Toast.makeText(context, "Logged out successfully", Toast.LENGTH_SHORT).show()
+         val intent = Intent(context, SignInFragment::class.java)
+         startActivity(intent)
+         requireActivity().finish()
     }
 
     override fun saveTask(todoTask: String, todoEdit: TextInputEditText) {
@@ -161,5 +183,4 @@ class HomeFragment : Fragment(), ToDoDialogFragment.OnDialogNextBtnClickListener
             ToDoDialogFragment.TAG
         )
     }
-
 }
